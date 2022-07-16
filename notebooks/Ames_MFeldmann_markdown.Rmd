@@ -1,0 +1,324 @@
+---
+title: "Predicting house sales prices (Ames housing dataset)"
+subtitle: "Final assignment in WHU Data Analytics course ST22" 
+author: "Marc Feldmann"
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this markdown document, data from the Ames housing dataset (<https://www.kaggle.com/datasets/prevek18/ames-housing-dataset>) will be used to compare the performance of four models in the prediction of housing prices in Ames, IA from 2006 to 2010. The compared models are:
+
+* linear regression
+* LASSO regression
+* regression tree
+* artificial neural network
+
+The following packages will be used: 
+
+```{r dependencies, results='hide', message=FALSE, warning=FALSE}
+library(readxl)
+library(visdat)
+library(corrplot)
+library(imputeTS)
+library(olsrr)
+library(car)
+library(glmnet)
+library(ISLR)
+library(tree)
+library(neuralnet)
+```
+
+<br>
+
+## Table of contents
+
+1. Exploratory Data Analysis (EDA)
+2. Data Preprocessing
+3. Dataset Split into Training and Test Subsets
+4. Model Training and Comparison
+  + 4.1. linear regression
+  + 4.2. LASSO regression
+  + 4.3. regression tree
+  + 4.4. artificial neural network
+5. Model Recommendation
+
+<br>
+
+## 1. Exploratory Data Analysis (EDA)
+Assignment: "To support your analysis, you should first undertake basic descriptive analytics."
+
+We first load the dataset and explore its overall structure:
+
+```{r, warning=FALSE}
+data = read_excel("C:\\Users\\marc.feldmann\\Documents\\data_science_local\\HousePricePrediction\\data\\Ames housing dataset.xls")
+str(data)
+summary(data)
+vis_dat(data)
+vis_miss(data)
+table(sapply(data, class))
+```
+<br>
+Since several of the models we want to compare assume a normally distributed target variable, we also check the distribution of our target variable SalePrice:
+
+```{r}
+hist(data$SalePrice, breaks="FD")
+```
+<br>
+
+### Some main learnings from EDA:
+
+1. The column names contain whitespaces which will make referencing tedious.
+2. Only 37 of the features are numerical
+  + of these, 4 are actually dates (years)
+  + of these, 1 is an observation identifier
+  + most, if not all of these have different scales
+3. The proportion of missing values in the dataset is very low (0.3%)
+4. The target variable (SalePrice) is not normally distributed
+
+<br>
+
+## 2. Data Preprocessing
+
+Based on what we learned during EDA, we preprocess the data to facilitate later modelling. We first remove whitespaces from column names for easier referencing throughout:
+
+```{r}
+names(data)<-make.names(names(data),unique = TRUE)
+head(data)
+```
+<br>
+To significantly reduce preprocessing effort and model complexity, we start lean and just drop the categorical features. We do not transform the date variables that are stored as numerical variables. However, we put both these issues onto our mental list for optimization potentials in case of poor model performance. Further, we also drop the observation identifier column as it equals the row number:
+
+```{r}
+mask = sapply(data, is.numeric)
+data_red = data[mask]
+data_red = data_red[c(-1)]
+```
+<br>
+While there are not many missing values, it does not take much effort to add in column means:
+
+```{r}
+data_red = na_mean(data_red)
+```
+<br>
+However, what may indeed have a significant effect on several of the compared models is multicollinearity between predictor variables:
+
+```{r}
+corrplot(cor(data_red))
+```
+<br>
+Following common conventions, we choose 0.7 as a threshold and drop that variable from each collinear pair which is less strongly correlated with our target variable SalePrice (done in Excel). To further reduce model complexity, we also drop the 'Total' variables as these can be expected to be linear combinations of other variables. This renders us with a new correlation plot indicating collinearity has been mitigated:
+
+```{r}
+# cor(data_red)
+drops = c("1st.Flr.SF","TotRms.AbvGrd", "Garage.Area", "Garage.Yr.Blt", "Total.Bsmt.SF")
+data_red = data_red[ , !(names(data_red) %in% drops)]
+corrplot(cor(data_red))
+```
+<br>
+Further, since we have spotted during EDA that our target variable SalePrice is not normally distributed, we log transform it.
+
+```{r}
+data_red$SalePrice = log(data_red$SalePrice)
+hist(data_red$SalePrice, breaks="FD")
+```
+<br>
+<br>
+We also normalize the scales since EDA has shown that they differ across variables:
+
+```{r}
+data_red_scaled = scale(data_red)
+data_red_scaled = as.data.frame(data_red_scaled)
+```
+
+<br>
+
+## 3. Dataset Split into Training and Test Subsets
+Assignment: "Use 70% of the data for training, 30% of the data for testing. Use a seed value of 123."
+
+```{r}
+set.seed(123)
+n = dim(data_red_scaled)[1]
+test = sample(n, round(n*0.3))
+data_red_scaled_train = data_red_scaled[-test,]
+data_red_scaled_test = data_red_scaled[test,]
+```
+
+<br>
+
+## 4. Model Training and Comparison
+Assignment: "For prediction, implement a variety of models (e.g., linear regression, LASSO, regression trees, random forests, GBM, neural network, SVM) and analyze their respective performance (MSE)."
+
+We will compare the following models:
+
+* 4.1. linear regression
+* 4.2. LASSO regression
+* 4.3. regression tree
+* 4.4. artificial neural network
+
+### 4.1. Linear Regression Model
+
+We start with the linear regression model, training it on the training data.
+
+```{r}
+model_linreg = lm(SalePrice ~ ., data_red_scaled_train)
+summary(model_linreg)
+```
+<br>
+As already indicated in the model summary, there seems to be a problem: the NA indicates there are still collineated predictors:
+
+```{r}
+alias(model_linreg)
+```
+<br>
+This suggests the threshold we have set in our earlier multicollinearity check (0.7) was not strict enough. We thus retrain the linear regression model, this time excluding the affected variables:
+
+```{r}
+model_linreg = lm(SalePrice ~ . -X1st.Flr.SF -X2nd.Flr.SF -Low.Qual.Fin.SF,
+                  data_red_scaled_train)
+```
+<br>
+The variance inflation factors in the retrained model look fine:
+
+```{r}
+vif(model_linreg)
+```
+<br>
+The retrained model is summarized as follows:
+
+```{r}
+summary(model_linreg)
+```
+
+<br>
+
+### 4.2. LASSO Regression Model
+
+We now turn to implementing the LASSO regression model. For that, we first have to transform our data into a form that the GLMNET package can process. To facilitate later model comparability, we exclude the same variables which we have excluded in the linear regression model (we will also do this for the other models).
+
+```{r}
+data_red_scaled_train_x = model.matrix(SalePrice ~ . -X1st.Flr.SF -X2nd.Flr.SF -Low.Qual.Fin.SF,
+                 data_red_scaled_train)[,-1]
+data_red_scaled_test_x = model.matrix(SalePrice ~ . -X1st.Flr.SF -X2nd.Flr.SF -Low.Qual.Fin.SF,
+                 data_red_scaled_test)[,-1]
+```
+<br>
+LASSO penalizes large regression coefficients, up to the point of cancelling the influence of some predictor variables completeley. Penalty size is controlled by the parameter lambda. We first optimize lambda via a 10-fold cross validation:
+
+```{r}
+cv_model_lasso = cv.glmnet(data_red_scaled_train_x, data_red_scaled_train$SalePrice, alpha=1)
+plot(cv_model_lasso)
+lambda_opt = cv_model_lasso$lambda.min
+```
+<br>
+We can now feed the lambda value minimizing MSE over the inspected intervall (lambda_opt) into model training:
+
+```{r}
+model_lasso = glmnet(data_red_scaled_train_x, data_red_scaled_train$SalePrice, alpha=1, lambda=lambda_opt)
+```
+
+<br>
+
+### 4.3. Regression Tree Model
+
+We now move on to implementing the regression tree model.
+
+```{r}
+model_tree = tree(SalePrice ~ . -X1st.Flr.SF -X2nd.Flr.SF -Low.Qual.Fin.SF,
+                  data_red_scaled_train)
+summary(model_tree)
+plot(model_tree)
+text(model_tree)
+```
+<br>
+We can also check whether pruning our tree would result in improved prediction quality. However, this does not seem to be the case:
+
+```{r}
+cv_model_tree = cv.tree(model_tree)
+plot(cv_model_tree$size, cv_model_tree$dev, type="b")
+```
+
+
+<br>
+
+### 4.4. Artifical Neural Network Model
+
+Finally, we implement the most time-intensive model to train: a simple artifical neural network. While the model failed to converge initially, increasing the number of repetitions (aka 'epochs') and the threshold, reducing the number of hidden layers, and setting a step maximum resolved the problem.
+
+```{r}
+model_ANN = neuralnet(SalePrice ~ . -X1st.Flr.SF -X2nd.Flr.SF -Low.Qual.Fin.SF,
+                      data=data_red_scaled_train, hidden=c(6, 3),
+                      linear.output=TRUE, lifesign='full', rep=3, stepmax=30000,
+                      threshold=0.3)
+```
+<br>
+The best resulting neural network model look as follows:
+
+```{r}
+plot(model_ANN, rep="best")
+```
+
+
+### Model Comparison
+
+Now that we have trained all four models, we can compute and compare their MSEs on the test data. (It should be noted that the prior rescaling of the features, while not harming model comparison, prevents meaningful MSE interpretation.)
+
+Code for computing model MSEs:
+
+```{r}
+# linear reg evaluation
+preds = predict(model_linreg, data_red_scaled_test)
+model_linreg_MSE = mean((data_red_scaled_test$SalePrice - preds)^2)
+
+# LASSO reg evaluation
+preds = predict(model_lasso, s=lambda_opt, data_red_scaled_test_x)
+model_lasso_MSE = mean((data_red_scaled_test$SalePrice - preds)^2)
+
+# tree evaluation
+preds = predict(model_tree, data_red_scaled_test)
+model_tree_MSE = mean((data_red_scaled_test$SalePrice - preds)^2)
+
+# ANN evaluation
+preds = predict(model_ANN, data_red_scaled_test)
+model_ANN_MSE = mean((data_red_scaled_test$SalePrice - preds)^2)
+
+MSEs = c(model_linreg_MSE, model_lasso_MSE, model_tree_MSE, model_ANN_MSE)
+```
+
+Plotting MSEs:
+
+```{r}
+barplot(MSEs, main="MSE comparison", names.arg=c("Linear Regression", "LASSO",
+                                                 "Regression Tree",
+                                                 "Neural Net"))
+```
+
+<br>
+
+## 5. Model Recommendation
+Assignment: "Make a final recommendation about your preferred model."
+
+I recommend to use the linear regression model for the prediction of housing sales prices in Ames, IA, for three main reasons:
+
+1. It produces the lowest MSE of all compared models.
+2. It is easier to explain to decision-makers than most to all other compared models.
+3. It is easier to retrain than most to all compared models when new data becomes available.
+
+However, it is clear that this model choice can only be considered preliminary for at least three main reasons:
+
+1. The MSE difference of linear regression to the next best model is marginal. Since some randomness is involved in model computation (e.g. initialization of weights in the neural net model), a larger number of training runs might lead to convergences on different MSEs, with LinReg possibly falling behind other models.
+2. Hyperparameter tuning for all models is far from exhausted. This strongly suggests that the compared models' MSEs can be significantly improved. This might lead to selection of another model than the LinReg model. There is definitively a need to systenatically optimize all compared models, and compare the optimized models also based on other common regression quality metrics than MSE such as RMSE and MAE.
+3. Categorical variables have not been utilized to reduce data preprocessing efforts as well as model complexity (that the encoding of categorical variables would have introduced). More broadly speaking, there is potential in optimizing preprocessing steps (e.g., trying different imputation methods). This, again, might have different implications for model selection.
+
+### Next Steps:
+
+In optimization, a step that could make sense to prioritize (next to grid searching optimal hyperparameters) is to explore the predictive power of the not-yet-included categorical variables. As the encoding that is required for using these variables as predictors in several of the comapred models will significantly drive dimensionality, accompanying this with dimensionality reduction techniques such as PCA is advisable.
+
+<br>
+<br>
+<br>
+
+
