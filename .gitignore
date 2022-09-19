@@ -5,7 +5,8 @@ docs/
 results/
 .Rproj
 .R
-# History files
+
+## History files
 .Rhistory
 .Rapp.history
 # Session Data files
