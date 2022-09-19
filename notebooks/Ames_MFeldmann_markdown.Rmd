@@ -49,12 +49,12 @@ library(neuralnet)
 <br>
 
 ## 1. Exploratory Data Analysis (EDA)
-Assignment: "To support your analysis, you should first undertake basic descriptive analytics."
+To support further analysis, we will first generate some basic descriptive statistics.
 
 We first load the dataset and explore its overall structure:
 
 ```{r, warning=FALSE}
-data = read_excel("C:\\Users\\marc.feldmann\\Documents\\data_science_local\\HousePricePrediction\\data\\Ames housing dataset.xls")
+data = read_excel("data\\Ames housing dataset.xls")
 str(data)
 summary(data)
 vis_dat(data)
@@ -137,7 +137,7 @@ data_red_scaled = as.data.frame(data_red_scaled)
 <br>
 
 ## 3. Dataset Split into Training and Test Subsets
-Assignment: "Use 70% of the data for training, 30% of the data for testing. Use a seed value of 123."
+We use 70% of the data as training data, 30% as test data.
 
 ```{r}
 set.seed(123)
@@ -150,7 +150,7 @@ data_red_scaled_test = data_red_scaled[test,]
 <br>
 
 ## 4. Model Training and Comparison
-Assignment: "For prediction, implement a variety of models (e.g., linear regression, LASSO, regression trees, random forests, GBM, neural network, SVM) and analyze their respective performance (MSE)."
+For prediction, we implement a variety of models and analyze their respective performance (MSE).
 
 We will compare the following models:
 
@@ -299,9 +299,7 @@ barplot(MSEs, main="MSE comparison", names.arg=c("Linear Regression", "LASSO",
 <br>
 
 ## 5. Model Recommendation
-Assignment: "Make a final recommendation about your preferred model."
-
-I recommend to use the linear regression model for the prediction of housing sales prices in Ames, IA, for three main reasons:
+Finally, we make a recommendation about the preferred model. We recommend to use the linear regression model for the prediction of housing sales prices in Ames, IA, for three main reasons:
 
 1. It produces the lowest MSE of all compared models.
 2. It is easier to explain to decision-makers than most to all other compared models.
