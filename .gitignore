@@ -4,6 +4,7 @@ data/
 docs/
 results/
 .Rproj
+.R
 # History files
 .Rhistory
 .Rapp.history
