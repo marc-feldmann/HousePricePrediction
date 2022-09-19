@@ -54,7 +54,7 @@ To support further analysis, we will first generate some basic descriptive stati
 We first load the dataset and explore its overall structure:
 
 ```{r, warning=FALSE}
-data = read_excel("data\\Ames housing dataset.xls")
+data = read_excel("C:\\Users\\marc.feldmann\\Documents\\data_science_local\\HousePricePrediction\\data\\Ames housing dataset.xls")
 str(data)
 summary(data)
 vis_dat(data)

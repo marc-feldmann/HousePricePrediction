@@ -1,7 +1,7 @@
 Predicting house sales prices (Ames housing dataset)
 ================
 Marc Feldmann
-2022-07-10
+2022-09-19
 
 In this markdown document, data from the Ames housing dataset
 (<https://www.kaggle.com/datasets/prevek18/ames-housing-dataset>) will
@@ -48,8 +48,8 @@ library(neuralnet)
 
 ## 1. Exploratory Data Analysis (EDA)
 
-Assignment: “To support your analysis, you should first undertake basic
-descriptive analytics.”
+To support further analysis, we will first generate some basic
+descriptive statistics.
 
 We first load the dataset and explore its overall structure:
 
@@ -453,8 +453,7 @@ data_red_scaled = as.data.frame(data_red_scaled)
 
 ## 3. Dataset Split into Training and Test Subsets
 
-Assignment: “Use 70% of the data for training, 30% of the data for
-testing. Use a seed value of 123.”
+We use 70% of the data as training data, 30% as test data.
 
 ``` r
 set.seed(123)
@@ -468,9 +467,8 @@ data_red_scaled_test = data_red_scaled[test,]
 
 ## 4. Model Training and Comparison
 
-Assignment: “For prediction, implement a variety of models (e.g., linear
-regression, LASSO, regression trees, random forests, GBM, neural
-network, SVM) and analyze their respective performance (MSE).”
+For prediction, we implement a variety of models and analyze their
+respective performance (MSE).
 
 We will compare the following models:
 
@@ -756,7 +754,7 @@ model_ANN = neuralnet(SalePrice ~ . -X1st.Flr.SF -X2nd.Flr.SF -Low.Qual.Fin.SF,
     ##                                                      3000    min thresh: 0.460583836619512
     ##                                                      4000    min thresh: 0.382525926685291
     ##                                                      5000    min thresh: 0.302423743544616
-    ##                                                      5008    error: 62.0886  time: 15.46 secs
+    ##                                                      5008    error: 62.0886  time: 17.72 secs
     ## hidden: 6, 3    thresh: 0.3    rep: 2/3    steps:    1000    min thresh: 1.55070588466642
     ##                                                      2000    min thresh: 0.580276528537757
     ##                                                      3000    min thresh: 0.391867417216015
@@ -769,7 +767,7 @@ model_ANN = neuralnet(SalePrice ~ . -X1st.Flr.SF -X2nd.Flr.SF -Low.Qual.Fin.SF,
     ##                                                     10000    min thresh: 0.345622213956012
     ##                                                     11000    min thresh: 0.345622213956012
     ##                                                     12000    min thresh: 0.338015030565988
-    ##                                                     12788    error: 67.35681 time: 35.63 secs
+    ##                                                     12788    error: 67.35681 time: 42.11 secs
     ## hidden: 6, 3    thresh: 0.3    rep: 3/3    steps:    1000    min thresh: 1.14965955935494
     ##                                                      2000    min thresh: 0.689656370486307
     ##                                                      3000    min thresh: 0.53893689223441
@@ -781,7 +779,7 @@ model_ANN = neuralnet(SalePrice ~ . -X1st.Flr.SF -X2nd.Flr.SF -Low.Qual.Fin.SF,
     ##                                                      9000    min thresh: 0.360704204735835
     ##                                                     10000    min thresh: 0.360704204735835
     ##                                                     11000    min thresh: 0.360704204735835
-    ##                                                     11650    error: 58.80357 time: 33.1 secs
+    ##                                                     11650    error: 58.80357 time: 37.28 secs
 
 <br> The best resulting neural network model look as follows:
 
@@ -834,9 +832,8 @@ barplot(MSEs, main="MSE comparison", names.arg=c("Linear Regression", "LASSO",
 
 ## 5. Model Recommendation
 
-Assignment: “Make a final recommendation about your preferred model.”
-
-I recommend to use the linear regression model for the prediction of
+Finally, we make a recommendation about the preferred model. We
+recommend to use the linear regression model for the prediction of
 housing sales prices in Ames, IA, for three main reasons:
 
 1.  It produces the lowest MSE of all compared models.
