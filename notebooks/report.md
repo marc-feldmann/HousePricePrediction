@@ -1,7 +1,7 @@
 Predicting house sales prices (Ames housing dataset)
 ================
 Marc Feldmann
-2022-09-19
+2022-09-20
 
 In this markdown document, data from the Ames housing dataset
 (<https://www.kaggle.com/datasets/prevek18/ames-housing-dataset>) will
@@ -319,13 +319,13 @@ summary(data)
 vis_dat(data)
 ```
 
-![](Ames_MFeldmann_markdown_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+![](report_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
 
 ``` r
 vis_miss(data)
 ```
 
-![](Ames_MFeldmann_markdown_files/figure-gfm/unnamed-chunk-1-2.png)<!-- -->
+![](report_files/figure-gfm/unnamed-chunk-1-2.png)<!-- -->
 
 ``` r
 table(sapply(data, class))
@@ -343,8 +343,7 @@ target variable SalePrice:
 hist(data$SalePrice, breaks="FD")
 ```
 
-![](Ames_MFeldmann_markdown_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
-<br>
+![](report_files/figure-gfm/unnamed-chunk-2-1.png)<!-- --> <br>
 
 ### Some main learnings from EDA:
 
@@ -416,13 +415,13 @@ the compared models is multicollinearity between predictor variables:
 corrplot(cor(data_red))
 ```
 
-![](Ames_MFeldmann_markdown_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
-<br> Following common conventions, we choose 0.7 as a threshold and drop
-that variable from each collinear pair which is less strongly correlated
-with our target variable SalePrice (done in Excel). To further reduce
-model complexity, we also drop the ‘Total’ variables as these can be
-expected to be linear combinations of other variables. This renders us
-with a new correlation plot indicating collinearity has been mitigated:
+![](report_files/figure-gfm/unnamed-chunk-6-1.png)<!-- --> <br>
+Following common conventions, we choose 0.7 as a threshold and drop that
+variable from each collinear pair which is less strongly correlated with
+our target variable SalePrice (done in Excel). To further reduce model
+complexity, we also drop the ‘Total’ variables as these can be expected
+to be linear combinations of other variables. This renders us with a new
+correlation plot indicating collinearity has been mitigated:
 
 ``` r
 # cor(data_red)
@@ -431,18 +430,18 @@ data_red = data_red[ , !(names(data_red) %in% drops)]
 corrplot(cor(data_red))
 ```
 
-![](Ames_MFeldmann_markdown_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
-<br> Further, since we have spotted during EDA that our target variable
-SalePrice is not normally distributed, we log transform it.
+![](report_files/figure-gfm/unnamed-chunk-7-1.png)<!-- --> <br> Further,
+since we have spotted during EDA that our target variable SalePrice is
+not normally distributed, we log transform it.
 
 ``` r
 data_red$SalePrice = log(data_red$SalePrice)
 hist(data_red$SalePrice, breaks="FD")
 ```
 
-![](Ames_MFeldmann_markdown_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
-<br> <br> We also normalize the scales since EDA has shown that they
-differ across variables:
+![](report_files/figure-gfm/unnamed-chunk-8-1.png)<!-- --> <br> <br> We
+also normalize the scales since EDA has shown that they differ across
+variables:
 
 ``` r
 data_red_scaled = scale(data_red)
@@ -679,7 +678,7 @@ cv_model_lasso = cv.glmnet(data_red_scaled_train_x, data_red_scaled_train$SalePr
 plot(cv_model_lasso)
 ```
 
-![](Ames_MFeldmann_markdown_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+![](report_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
 ``` r
 lambda_opt = cv_model_lasso$lambda.min
@@ -721,16 +720,16 @@ plot(model_tree)
 text(model_tree)
 ```
 
-![](Ames_MFeldmann_markdown_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
-<br> We can also check whether pruning our tree would result in improved
-prediction quality. However, this does not seem to be the case:
+![](report_files/figure-gfm/unnamed-chunk-19-1.png)<!-- --> <br> We can
+also check whether pruning our tree would result in improved prediction
+quality. However, this does not seem to be the case:
 
 ``` r
 cv_model_tree = cv.tree(model_tree)
 plot(cv_model_tree$size, cv_model_tree$dev, type="b")
 ```
 
-![](Ames_MFeldmann_markdown_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
+![](report_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
 
 <br>
 
@@ -754,7 +753,7 @@ model_ANN = neuralnet(SalePrice ~ . -X1st.Flr.SF -X2nd.Flr.SF -Low.Qual.Fin.SF,
     ##                                                      3000    min thresh: 0.460583836619512
     ##                                                      4000    min thresh: 0.382525926685291
     ##                                                      5000    min thresh: 0.302423743544616
-    ##                                                      5008    error: 62.0886  time: 17.72 secs
+    ##                                                      5008    error: 62.0886  time: 21.74 secs
     ## hidden: 6, 3    thresh: 0.3    rep: 2/3    steps:    1000    min thresh: 1.55070588466642
     ##                                                      2000    min thresh: 0.580276528537757
     ##                                                      3000    min thresh: 0.391867417216015
@@ -767,7 +766,7 @@ model_ANN = neuralnet(SalePrice ~ . -X1st.Flr.SF -X2nd.Flr.SF -Low.Qual.Fin.SF,
     ##                                                     10000    min thresh: 0.345622213956012
     ##                                                     11000    min thresh: 0.345622213956012
     ##                                                     12000    min thresh: 0.338015030565988
-    ##                                                     12788    error: 67.35681 time: 42.11 secs
+    ##                                                     12788    error: 67.35681 time: 51.86 secs
     ## hidden: 6, 3    thresh: 0.3    rep: 3/3    steps:    1000    min thresh: 1.14965955935494
     ##                                                      2000    min thresh: 0.689656370486307
     ##                                                      3000    min thresh: 0.53893689223441
@@ -779,7 +778,7 @@ model_ANN = neuralnet(SalePrice ~ . -X1st.Flr.SF -X2nd.Flr.SF -Low.Qual.Fin.SF,
     ##                                                      9000    min thresh: 0.360704204735835
     ##                                                     10000    min thresh: 0.360704204735835
     ##                                                     11000    min thresh: 0.360704204735835
-    ##                                                     11650    error: 58.80357 time: 37.28 secs
+    ##                                                     11650    error: 58.80357 time: 45.04 secs
 
 <br> The best resulting neural network model look as follows:
 
@@ -787,7 +786,7 @@ model_ANN = neuralnet(SalePrice ~ . -X1st.Flr.SF -X2nd.Flr.SF -Low.Qual.Fin.SF,
 plot(model_ANN, rep="best")
 ```
 
-![](Ames_MFeldmann_markdown_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+![](report_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
 
 ### Model Comparison
 
@@ -826,7 +825,7 @@ barplot(MSEs, main="MSE comparison", names.arg=c("Linear Regression", "LASSO",
                                                  "Neural Net"))
 ```
 
-![](Ames_MFeldmann_markdown_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
+![](report_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
 
 <br>
 
