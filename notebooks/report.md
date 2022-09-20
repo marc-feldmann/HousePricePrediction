@@ -753,7 +753,7 @@ model_ANN = neuralnet(SalePrice ~ . -X1st.Flr.SF -X2nd.Flr.SF -Low.Qual.Fin.SF,
     ##                                                      3000    min thresh: 0.460583836619512
     ##                                                      4000    min thresh: 0.382525926685291
     ##                                                      5000    min thresh: 0.302423743544616
-    ##                                                      5008    error: 62.0886  time: 21.74 secs
+    ##                                                      5008    error: 62.0886  time: 23.79 secs
     ## hidden: 6, 3    thresh: 0.3    rep: 2/3    steps:    1000    min thresh: 1.55070588466642
     ##                                                      2000    min thresh: 0.580276528537757
     ##                                                      3000    min thresh: 0.391867417216015
@@ -766,7 +766,7 @@ model_ANN = neuralnet(SalePrice ~ . -X1st.Flr.SF -X2nd.Flr.SF -Low.Qual.Fin.SF,
     ##                                                     10000    min thresh: 0.345622213956012
     ##                                                     11000    min thresh: 0.345622213956012
     ##                                                     12000    min thresh: 0.338015030565988
-    ##                                                     12788    error: 67.35681 time: 51.86 secs
+    ##                                                     12788    error: 67.35681 time: 51.78 secs
     ## hidden: 6, 3    thresh: 0.3    rep: 3/3    steps:    1000    min thresh: 1.14965955935494
     ##                                                      2000    min thresh: 0.689656370486307
     ##                                                      3000    min thresh: 0.53893689223441
@@ -778,7 +778,7 @@ model_ANN = neuralnet(SalePrice ~ . -X1st.Flr.SF -X2nd.Flr.SF -Low.Qual.Fin.SF,
     ##                                                      9000    min thresh: 0.360704204735835
     ##                                                     10000    min thresh: 0.360704204735835
     ##                                                     11000    min thresh: 0.360704204735835
-    ##                                                     11650    error: 58.80357 time: 45.04 secs
+    ##                                                     11650    error: 58.80357 time: 42.42 secs
 
 <br> The best resulting neural network model look as follows:
 
